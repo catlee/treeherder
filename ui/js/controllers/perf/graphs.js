@@ -326,9 +326,9 @@ perf.controller('GraphsCtrl', [
                 series.flotSeries.lines.show = false;
             });
 
-            $("#overview-plot").bind("plotunselected", plotUnselected);
+            $("#overview-plot").on("plotunselected", plotUnselected);
 
-            $("#overview-plot").bind("plotselected", plotSelected);
+            $("#overview-plot").on("plotselected", plotSelected);
         }
 
         function zoomGraph() {
@@ -471,7 +471,7 @@ perf.controller('GraphsCtrl', [
                     }
                 }
 
-                $("#graph").bind("plothover", function (event, pos, item) {
+                $("#graph").on("plothover", function (event, pos, item) {
                     // if examining an item, disable this behaviour
                     if ($scope.selectedDataPoint)
                         return;
@@ -493,7 +493,7 @@ perf.controller('GraphsCtrl', [
                     }
                 });
 
-                $('#graph').bind('plotclick', function(e, pos, item) {
+                $('#graph').on('plotclick', function(e, pos, item) {
                     if (item) {
                         $scope.selectedDataPoint = getSeriesDataPoint(item);
                         showTooltip($scope.selectedDataPoint);
@@ -507,7 +507,7 @@ perf.controller('GraphsCtrl', [
                     highlightDataPoints();
                 });
 
-                $('#graph').bind("plotselected", function(event, ranges) {
+                $('#graph').on("plotselected", function(event, ranges) {
                     $scope.plot.clearSelection();
                     plotSelected(event, ranges);
                     zoomGraph();
