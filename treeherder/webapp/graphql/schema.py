@@ -141,7 +141,7 @@ class Query(graphene.ObjectType):
         return FailureClassification.objects.all()
 
     def resolve_all_pushes(self, args, context, info):
-        return Push.objects.filter(**args)
+        return Push.objects.filter(**args).select_related("jobs__job_details")
 
 
 schema = graphene.Schema(query=Query)
