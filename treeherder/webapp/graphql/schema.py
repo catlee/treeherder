@@ -6,6 +6,7 @@ from treeherder.model.models import *
 
 
 class JobDetailGraph(DjangoObjectType):
+
     class Meta:
         model = JobDetail
         filter_fields = {
@@ -14,19 +15,56 @@ class JobDetailGraph(DjangoObjectType):
         interfaces = (graphene.relay.Node, )
 
 
+# class BugSuggestions(graphene.ObjectType):
+#     bug_suggestions = graphene.List
+#
+#     def resolve_bug_suggestions(self, args, context, info):
+#         from treeherder.model import error_summary
+#         return error_summary.bug_suggestions_line(self)
+
+
+class TextLogErrorGraph(DjangoObjectType):
+
+    def bug_suggestions_resolver(root, args, context, info):
+        from treeherder.model import error_summary
+        return error_summary.bug_suggestions_line(root)
+
+    bug_suggestions = graphene.List(bug_suggestions_resolver)
+
+
+    # need a way to get the bug_suggestions as a field here.  Perhaps need a special Graph that's
+    # not a Django type, but still works for the list?.
+
+    class Meta:
+        model = TextLogError
+
+
+
 class JobGraph(DjangoObjectType):
     class Meta:
         model = Job
         filter_fields = {
+            'state': ['exact'],
             'result': ['exact'],
             'tier': ['exact', 'lt'],
         }
         interfaces = (graphene.relay.Node, )
 
     job_details = DjangoFilterConnectionField(JobDetailGraph)
+    textlog_errors = graphene.List(TextLogErrorGraph)
 
     def resolve_job_details(self, args, context, info):
         return JobDetail.objects.filter(job=self, **args)
+
+    def resolve_textlog_errors(self, args, context, info):
+        return (TextLogError.objects
+            .filter(step__job=self)
+            .select_related("_metadata",
+                            "_metadata__failure_line")
+            .prefetch_related("classified_failures",
+                              "matches",
+                              "matches__matcher")
+            .order_by('id'))
 
 
 class BuildPlatformGraph(DjangoObjectType):
