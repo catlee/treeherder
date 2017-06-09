@@ -3,6 +3,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
 from treeherder.model.models import *
+from treeherder.model import error_summary
 
 
 class JobDetailGraph(DjangoObjectType):
@@ -15,29 +16,37 @@ class JobDetailGraph(DjangoObjectType):
         interfaces = (graphene.relay.Node, )
 
 
-# class BugSuggestions(graphene.ObjectType):
-#     bug_suggestions = graphene.List
-#
-#     def resolve_bug_suggestions(self, args, context, info):
-#         from treeherder.model import error_summary
-#         return error_summary.bug_suggestions_line(self)
+class ObjectScalar(graphene.types.scalars.Scalar):
+    '''Plain Object Field'''
+
+    @staticmethod
+    def serialize(dt):
+        return dt
+
+    @staticmethod
+    def parse_literal(node):
+        return node.value
+
+    @staticmethod
+    def parse_value(value):
+        return value
 
 
 class TextLogErrorGraph(DjangoObjectType):
 
-    def bug_suggestions_resolver(root, args, context, info):
-        from treeherder.model import error_summary
-        return error_summary.bug_suggestions_line(root)
-
-    bug_suggestions = graphene.List(bug_suggestions_resolver)
-
-
-    # need a way to get the bug_suggestions as a field here.  Perhaps need a special Graph that's
-    # not a Django type, but still works for the list?.
-
     class Meta:
         model = TextLogError
 
+    bug_suggestions = ObjectScalar()
+
+    def resolve_bug_suggestions(self, args, context, info):
+        return error_summary.bug_suggestions_line(self)
+
+
+class TextLogStepGraph(DjangoObjectType):
+
+    class Meta:
+        model = TextLogStep
 
 
 class JobGraph(DjangoObjectType):
@@ -51,20 +60,9 @@ class JobGraph(DjangoObjectType):
         interfaces = (graphene.relay.Node, )
 
     job_details = DjangoFilterConnectionField(JobDetailGraph)
-    textlog_errors = graphene.List(TextLogErrorGraph)
 
     def resolve_job_details(self, args, context, info):
         return JobDetail.objects.filter(job=self, **args)
-
-    def resolve_textlog_errors(self, args, context, info):
-        return (TextLogError.objects
-            .filter(step__job=self)
-            .select_related("_metadata",
-                            "_metadata__failure_line")
-            .prefetch_related("classified_failures",
-                              "matches",
-                              "matches__matcher")
-            .order_by('id'))
 
 
 class BuildPlatformGraph(DjangoObjectType):
@@ -146,10 +144,11 @@ class Query(graphene.ObjectType):
     all_machine_platforms = graphene.List(MachinePlatformGraph)
     all_machines = graphene.List(MachineGraph)
     all_option_collections = graphene.List(OptionCollectionGraph)
-    all_job_types = graphene.List(JobTypeGraph)
+    # all_job_types = graphene.List(JobTypeGraph)
     all_products = graphene.List(ProductGraph)
     all_failure_classifications = graphene.List(FailureClassificationGraph)
     all_pushes = DjangoFilterConnectionField(PushGraph)
+    all_text_log_steps = graphene.List(TextLogStepGraph)
 
     def resolve_all_jobs(self, args, context, info):
         return Job.objects.filter(**args)

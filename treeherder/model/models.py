@@ -1467,7 +1467,7 @@ class TextLogStep(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
 
-    job = models.ForeignKey(Job)
+    job = models.ForeignKey(Job, related_name="text_log_steps")
 
     # these are presently based off of buildbot results
     # (and duplicated in treeherder/etl/buildbot.py)
