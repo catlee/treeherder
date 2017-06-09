@@ -144,7 +144,7 @@ class Query(graphene.ObjectType):
     all_machine_platforms = graphene.List(MachinePlatformGraph)
     all_machines = graphene.List(MachineGraph)
     all_option_collections = graphene.List(OptionCollectionGraph)
-    # all_job_types = graphene.List(JobTypeGraph)
+    all_job_types = graphene.List(JobTypeGraph)
     all_products = graphene.List(ProductGraph)
     all_failure_classifications = graphene.List(FailureClassificationGraph)
     all_pushes = DjangoFilterConnectionField(PushGraph)
@@ -180,5 +180,7 @@ class Query(graphene.ObjectType):
     def resolve_all_pushes(self, args, context, info):
         return Push.objects.filter(**args)
 
+    def resolve_all_text_log_steps(self, args, context, info):
+        return TextLogStep.objects.filter(**args)
 
 schema = graphene.Schema(query=Query)
