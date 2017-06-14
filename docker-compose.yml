@@ -1,0 +1,57 @@
+version: "3"
+services:
+
+  python-base:
+    image: heroku/heroku:16-build
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      #cache_from: TODO
+    # environment: TODO
+    command: ./manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+    links:
+      - mysql
+      - elasticsearch
+      - memcached
+      - rabbitmq
+
+  frontend:
+    image: node:7.9.0-alpine
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    working_dir: /app
+    command: ./node_modules/.bin/webpack-dev-server --host 0.0.0.0
+
+  mysql:
+    image: mysql:5.6.34
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=treeherder
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.1
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  memcached:
+    image: memcached:1-alpine
+
+  rabbitmq:
+    image: rabbitmq:3.6.9-alpine
+
+volumes:
+  db_data: {}
+  es_data: {}
