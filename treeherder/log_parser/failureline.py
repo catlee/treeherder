@@ -11,6 +11,7 @@ from requests.exceptions import HTTPError
 from treeherder.etl.common import fetch_text
 from treeherder.etl.text import astral_filter
 from treeherder.model.models import (FailureLine,
+                                     Group,
                                      JobLog)
 from treeherder.model.search import (TestFailureLine,
                                      bulk_insert)
@@ -94,13 +95,20 @@ def get_kwargs(failure_line):
             if key in failure_line}
 
 
+def create_failure_line(job_log, failure_line):
+    fl = FailureLine.objects.create(repository=job_log.job.repository,
+                                    job_guid=job_log.job.guid,
+                                    job_log=job_log,
+                                    **get_kwargs(failure_line))
+    if "group" in failure_line:
+        group, saved = Group.objects.get_or_create(name=failure_line["group"])
+        group.failure_lines.add(fl)
+    return fl
+
+
 def create(job_log, log_list):
-    failure_lines = [
-        FailureLine.objects.create(repository=job_log.job.repository,
-                                   job_guid=job_log.job.guid,
-                                   job_log=job_log,
-                                   **get_kwargs(failure_line))
-        for failure_line in log_list]
+    failure_lines = [create_failure_line(job_log, failure_line)
+                     for failure_line in log_list]
     job_log.update_status(JobLog.PARSED)
     return failure_lines
 

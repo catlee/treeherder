@@ -1251,6 +1251,23 @@ class FailureLine(models.Model):
             return es_line
 
 
+class Group(models.Model):
+    """
+    The test harness Group.  Sometimes this is a Manifest, but not always.
+    Not to be confused with JobGroup which is Treeherder specific.
+    """
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=200, unique=True)
+    failure_lines = models.ManyToManyField(FailureLine,
+                                           related_name='group')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'group'
+
+
 class ClassifiedFailure(models.Model):
     id = models.BigAutoField(primary_key=True)
     failure_lines = models.ManyToManyField(FailureLine, through='FailureMatch',

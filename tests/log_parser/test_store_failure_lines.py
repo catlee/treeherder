@@ -6,6 +6,7 @@ from requests.exceptions import HTTPError
 from treeherder.log_parser.failureline import (store_failure_lines,
                                                write_failure_lines)
 from treeherder.model.models import (FailureLine,
+                                     Group,
                                      JobLog)
 from treeherder.model.search import TestFailureLine
 
@@ -25,8 +26,10 @@ def test_store_error_summary(activate_responses, test_repository, test_job):
     store_failure_lines(log_obj)
 
     assert FailureLine.objects.count() == 1
+    assert Group.objects.count() == 1
 
     failure = FailureLine.objects.get(pk=1)
+    assert failure.group.all().first().name == "devtools/client/debugger/new/test/mochitest/browser.ini"
 
     assert failure.job_guid == test_job.guid
 
@@ -50,6 +53,8 @@ def test_store_error_summary_truncated(activate_responses, test_repository,
 
     assert FailureLine.objects.count() == 5 + 1
 
+    assert Group.objects.count() == 1
+
     failure = FailureLine.objects.get(action='truncated')
 
     assert failure.job_guid == test_job.guid
@@ -70,6 +75,8 @@ def test_store_error_summary_astral(activate_responses, test_repository, test_jo
     store_failure_lines(log_obj)
 
     assert FailureLine.objects.count() == 1
+
+    assert Group.objects.count() == 1
 
     failure = FailureLine.objects.get(pk=1)
 
