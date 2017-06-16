@@ -1253,11 +1253,16 @@ class FailureLine(models.Model):
 
 class Group(models.Model):
     """
-    The test harness Group.  Sometimes this is a Manifest, but not always.
-    Not to be confused with JobGroup which is Treeherder specific.
+    The test harness group.
+
+    This is most often a manifest file.  But in some instances where a suite
+    doesn't have manifests, or a test suite isn't logging its data properly,
+    this can simply be "default"
+
+    Note: This is not to be confused with JobGroup which is Treeherder specific.
     """
     id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=255, unique=True)
     failure_lines = models.ManyToManyField(FailureLine,
                                            related_name='group')
 

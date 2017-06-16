@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='Group',
             fields=[
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=200, unique=True)),
+                ('name', models.CharField(max_length=255, unique=True)),
                 ('failure_lines', models.ManyToManyField(related_name='group', to='model.FailureLine')),
             ],
             options={
