@@ -55,6 +55,9 @@ def test_store_error_summary_truncated(activate_responses, test_repository,
 
     assert Group.objects.count() == 1
 
+    failure = FailureLine.objects.get(pk=1)
+    assert failure.group.all().first().name == "devtools/client/debugger/new/test/mochitest"
+
     failure = FailureLine.objects.get(action='truncated')
 
     assert failure.job_guid == test_job.guid

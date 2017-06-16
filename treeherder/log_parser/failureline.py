@@ -102,8 +102,9 @@ def create_failure_line(job_log, failure_line):
                                     job_log=job_log,
                                     **get_kwargs(failure_line))
     if "group" in failure_line:
+        # Store as unix path separators and omit the filename
         group, saved = Group.objects.get_or_create(
-            name=path.dirname(failure_line["group"]))
+            name=path.dirname(path.join(*failure_line["group"].split("\\"))))
         group.failure_lines.add(fl)
     return fl
 
