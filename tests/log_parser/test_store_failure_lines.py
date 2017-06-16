@@ -29,7 +29,7 @@ def test_store_error_summary(activate_responses, test_repository, test_job):
     assert Group.objects.count() == 1
 
     failure = FailureLine.objects.get(pk=1)
-    assert failure.group.all().first().name == "devtools/client/debugger/new/test/mochitest/browser.ini"
+    assert failure.group.all().first().name == "devtools/client/debugger/new/test/mochitest"
 
     assert failure.job_guid == test_job.guid
 

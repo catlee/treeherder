@@ -1,6 +1,7 @@
 import json
 import logging
 from itertools import islice
+from os import path
 
 from django.conf import settings
 from django.db import transaction
@@ -101,7 +102,8 @@ def create_failure_line(job_log, failure_line):
                                     job_log=job_log,
                                     **get_kwargs(failure_line))
     if "group" in failure_line:
-        group, saved = Group.objects.get_or_create(name=failure_line["group"])
+        group, saved = Group.objects.get_or_create(
+            name=path.dirname(failure_line["group"]))
         group.failure_lines.add(fl)
     return fl
 
